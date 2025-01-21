@@ -22,6 +22,14 @@
         #history {
             margin-top: 20px;
         }
+        #score {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+        #timer {
+            font-size: 20px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -30,6 +38,8 @@
         <button id="startBtn">Начать играть</button>
         <button id="cheatBtn">CHEAT OFF</button>
     </div>
+    <div id="score">Score: 0</div>
+    <div id="timer">Time: 0</div>
     <div id="history">
         <h3>История игр</h3>
         <ul id="historyList"></ul>
@@ -44,7 +54,8 @@
         let d;
         let game;
         let timer;
-        let timeLeft = 7;
+        let gameTime = 0;
+        let timeLeft = 5;
         let immortal = false;
 
         document.addEventListener('keydown', direction);
@@ -69,14 +80,18 @@
             snake = [{ x: 9 * box, y: 10 * box }];
             score = 0;
             d = null;
-            timeLeft = 7;
+            gameTime = 0;
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('timer').textContent = `Time: ${gameTime}`;
+            timeLeft = immortal ? Infinity : 5;
             game = setInterval(draw, 100);
-            timer = setTimeout(gameOver, 7000);
+            if (!immortal) timer = setTimeout(gameOver, 5000);
         }
 
         function toggleCheat() {
             immortal = !immortal;
             document.getElementById('cheatBtn').textContent = immortal ? 'CHEAT ON' : 'CHEAT OFF';
+            if (immortal) clearTimeout(timer);
         }
 
         function draw() {
@@ -105,11 +120,12 @@
                 score++;
                 food = {
                     x: Math.floor(Math.random() * 19) * box,
-                    y: Math.floor(Math.random() * 19) * box
+                    y: Math.floor(Math.random() * 19) * box,
+                    size: 20 + score * 2
                 };
-                timeLeft = 7;
+                timeLeft = immortal ? Infinity : 5;
                 clearTimeout(timer);
-                timer = setTimeout(gameOver, 7000);
+                if (!immortal) timer = setTimeout(gameOver, 5000);
             } else {
                 snake.pop();
             }
@@ -121,6 +137,9 @@
             }
 
             snake.unshift(newHead);
+            gameTime += 0.1;
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('timer').textContent = `Time: ${gameTime.toFixed(1)}`;
         }
 
         function collision(head, array) {
@@ -136,7 +155,7 @@
             clearInterval(game);
             let historyList = document.getElementById('historyList');
             let listItem = document.createElement('li');
-            listItem.textContent = `Score: ${score}`;
+            listItem.textContent = `Score: ${score}, Time: ${gameTime.toFixed(1)}`;
             historyList.appendChild(listItem);
         }
     </script>
