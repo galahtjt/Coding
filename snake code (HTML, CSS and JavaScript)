@@ -7,7 +7,7 @@
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             height: 100vh;
             margin: 0;
@@ -16,10 +16,24 @@
         canvas {
             border: 1px solid #000;
         }
+        #controls {
+            margin-top: 10px;
+        }
+        #history {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="controls">
+        <button id="startBtn">Начать играть</button>
+        <button id="cheatBtn">CHEAT OFF</button>
+    </div>
+    <div id="history">
+        <h3>История игр</h3>
+        <ul id="historyList"></ul>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -28,8 +42,14 @@
         let food = { x: Math.floor(Math.random() * 19) * box, y: Math.floor(Math.random() * 19) * box };
         let score = 0;
         let d;
+        let game;
+        let timer;
+        let timeLeft = 7;
+        let immortal = false;
 
         document.addEventListener('keydown', direction);
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('cheatBtn').addEventListener('click', toggleCheat);
 
         function direction(event) {
             if (event.keyCode == 37 && d != 'RIGHT') {
@@ -41,6 +61,22 @@
             } else if (event.keyCode == 40 && d != 'UP') {
                 d = 'DOWN';
             }
+        }
+
+        function startGame() {
+            clearInterval(game);
+            clearTimeout(timer);
+            snake = [{ x: 9 * box, y: 10 * box }];
+            score = 0;
+            d = null;
+            timeLeft = 7;
+            game = setInterval(draw, 100);
+            timer = setTimeout(gameOver, 7000);
+        }
+
+        function toggleCheat() {
+            immortal = !immortal;
+            document.getElementById('cheatBtn').textContent = immortal ? 'CHEAT ON' : 'CHEAT OFF';
         }
 
         function draw() {
@@ -71,14 +107,17 @@
                     x: Math.floor(Math.random() * 19) * box,
                     y: Math.floor(Math.random() * 19) * box
                 };
+                timeLeft = 7;
+                clearTimeout(timer);
+                timer = setTimeout(gameOver, 7000);
             } else {
                 snake.pop();
             }
 
             let newHead = { x: snakeX, y: snakeY };
 
-            if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
-                clearInterval(game);
+            if (!immortal && (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake))) {
+                gameOver();
             }
 
             snake.unshift(newHead);
@@ -93,7 +132,13 @@
             return false;
         }
 
-        let game = setInterval(draw, 100);
+        function gameOver() {
+            clearInterval(game);
+            let historyList = document.getElementById('historyList');
+            let listItem = document.createElement('li');
+            listItem.textContent = `Score: ${score}`;
+            historyList.appendChild(listItem);
+        }
     </script>
 </body>
 </html>
